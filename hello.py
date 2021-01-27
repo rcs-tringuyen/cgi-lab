@@ -12,11 +12,25 @@ cgitb.enable()
 
 env_var = os.environ
 form = cgi.FieldStorage()
-username = form['username'].value
-password = form['password'].value
 
-if username == secret.username and secret.password:
-	print(f"Set-Cookie: {username}+{password}")
+
+if 'username' not in form or 'password' not in form:
+	secret_message = "<p style='color:red'>You need to pass both username and password!</p>"
+else:
+	username = form['username'].value
+	password = form['password'].value
+	if username == secret.username and password == secret.password:
+		print(f"Set-Cookie: cookie={username}+{password}")
+		secret_message = f"""
+		<h1 style='color:green'> Welcome, {username}! </h1>
+
+		<p> <small> Pst! I know your password is
+			<span class="spoilers"> {password}</span>.
+			</small>
+		</p>"""
+	else:
+		secret_message = "<p style='color:red'}>Your username or password is incorrect<p>"	
+	
 print("Content-Type: text/html\n\n")
 
 print(f"""
@@ -28,11 +42,11 @@ print(f"""
 		<h1>Question 3</h1><h2>User's Browser</h2><p>{env_var.get('HTTP_USER_AGENT')}</p>
 		<h1>Question 4</h1><h2>Login Form</h2>    
 		<form method="POST" action="/hello.py">
-        	<label> <span>Username:</span> <input autofocus type="text" name="username"></label> <br>
-        	<label> <span>Password:</span> <input type="password" name="password"></label>
-        	<button type="submit"> Login! </button>
-    	</form>
-    	<p>username:{username} / password:{password}</p>
+			<label> <span>Username:</span> <input autofocus type="text" name="username"></label> <br>
+			<label> <span>Password:</span> <input type="password" name="password"></label>
+			<button type="submit"> Login! </button>
+		</form>
+		{secret_message}
 	</body>
 	</html>
 """)
